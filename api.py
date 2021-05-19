@@ -108,7 +108,7 @@ class PetFriends:
 
 
     def create_pet_simple(self, auth_key: json, name: str,
-                          animal_type: str, age: int) -> json:
+                          animal_type: str, age: str) -> json:
 
         headers = {'auth_key': auth_key['key']}
         data = {
@@ -117,7 +117,7 @@ class PetFriends:
             'age': age
         }
 
-        res = requests.post(self.base_url + 'api/create_pet_simple/', headers=headers, data=data)
+        res = requests.post(self.base_url + 'api/create_pet_simple', headers=headers, data=data)
         status = res.status_code
         result = ""
         try:
@@ -143,3 +143,18 @@ class PetFriends:
         except json.decoder.JSONDecodeError:
             result = res.text
         return status, result
+
+
+    def bad_method_update_pet_info(self, auth_key: json, pet_id: str, name: str,
+                        animal_type: str, age: int) -> json:
+        """Проверяем запрос обновления информации с неправильным методом"""
+
+        headers = {'auth_key': auth_key['key']}
+        data = {
+            'name': name,
+            'age': age,
+            'animal_type': animal_type
+        }
+
+        res = requests.get(self.base_url + 'api/pets/' + pet_id, headers=headers, data=data)
+        status = res.status_code

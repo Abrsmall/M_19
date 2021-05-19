@@ -18,7 +18,7 @@ def test_get_api_key_for_valid_user(email=valid_email, password=valid_password):
 
 def test_get_all_pets_with_valid_key(filter=''):
     """ Проверяем что запрос всех питомцев возвращает не пустой список.
-    Для этого сначала получаем api ключ и сохраняем в переменную auth_key. Далее используя этого ключ
+    Для этого сначала получаем api ключ и сохраняем в переменную auth_key. Далее используя этот ключ
     запрашиваем список всех питомцев и проверяем что список не пустой.
     Доступное значение параметра filter - 'my_pets' либо '' """
 
@@ -90,7 +90,7 @@ def test_successful_update_self_pet_info(name='Мурзик', animal_type='Ко�
         raise Exception("There is no my pets")
 
 
-def test_successful_add_pet_without_photo(name='Chack', animal_type='cat', age=3):
+def test_successful_add_pet_without_photo(name='Chack', animal_type='cat', age='3'):
     """Проверяем возможность добавления животного без фото"""
 
     # Запрашиваем ключ api и сохраняем в переменую auth_key
@@ -121,10 +121,144 @@ def test_successful_set_photo(pet_photo='images\\sur.jpg'):
         pf.create_pet_simple(auth_key, "Суперкот", "кот", 3)
         _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
 
-    # Берём id первого питомца из списка и отправляем запрос на удаление
+    # Берём id первого питомца из списка и отправляем запрос на добавление
     pet_id = my_pets['pets'][0]['id']
     status, result = pf.set_new_photo(auth_key, pet_id, pet_photo='images\\cat.jpg')
 
     # Сверяем полученный ответ с ожидаемым результатом
     assert status == 200
     assert result[pet_photo] is not ''
+
+
+def test_invalid_auth_key_get_api_pets(filter=''):
+    """Проверяем ввод некорректного строкового ключа"""
+    auth_key = {'key': 'abc'}
+    status, result = pf.get_list_of_pets(auth_key, filter)
+
+    assert status == 403
+
+
+def test_int_auth_key_get_api_pets(filter=''):
+    """Проверяем ввод численного ключа"""
+    auth_key = {'key': 5}
+    status, result = pf.get_list_of_pets(auth_key, filter)
+
+    assert status == 403
+
+
+def test_kiril_symbols_auth_key_get_api_pets(filter=''):
+    """Проверяем ввод некорректного строкового ключа"""
+    auth_key = {'key': 'абв'}
+    status, result = pf.get_list_of_pets(auth_key, filter)
+
+    assert status == 403
+
+
+def test_big_value_auth_key_get_api_pets(filter=''):
+    """Проверяем ввод 256-значного ключа"""
+    auth_key = {'key': 'abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabca'}
+    status, result = pf.get_list_of_pets(auth_key, filter)
+
+    assert status == 400
+
+
+def test_Method_not_allowed_put_api_pets(filter=''):
+    """Проверяем ввод некорректного строкового ключа"""
+    auth_key = {'key': 'абв'}
+    status, result = pf.get_list_of_pets(auth_key, filter)
+
+    assert status == 405
+
+
+def test_set_text_instead_of_photo(pet_photo='images\\Q.txt'):
+    """Проверяем добавление текстового файла вместо фото"""
+
+    # Получаем полный путь изображения питомца и сохраняем в переменную pet_photo
+    pet_photo = os.path.join(os.path.dirname(__file__), pet_photo)
+
+    # Запрашиваем ключ api и сохраняем в переменую auth_key
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+    _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+
+    # Проверяем - если список своих питомцев пустой, то добавляем нового и опять запрашиваем список своих питомцев
+    if len(my_pets['pets']) == 0:
+        pf.create_pet_simple(auth_key, "Суперкот", "кот", 3)
+        _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+
+    # Берём id первого питомца из списка и отправляем запрос на удаление
+    pet_id = my_pets['pets'][0]['id']
+    status, result = pf.set_new_photo(auth_key, pet_id, pet_photo='images\\Q.txt')
+
+    # Сверяем полученный ответ с ожидаемым результатом
+    assert status == 400
+
+
+def test_not_set_file(pet_photo=''):
+    """Проверяем запрос добавления фото без файла"""
+
+
+    # Запрашиваем ключ api и сохраняем в переменую auth_key
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+    _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+
+    # Проверяем - если список своих питомцев пустой, то добавляем нового и опять запрашиваем список своих питомцев
+    if len(my_pets['pets']) == 0:
+        pf.create_pet_simple(auth_key, "Суперкот", "кот", 3)
+        _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+
+    # Берём id первого питомца из списка и отправляем запрос на добавление
+    pet_id = my_pets['pets'][0]['id']
+    status, result = pf.set_new_photo(auth_key, pet_id, pet_photo='')
+
+    # Сверяем полученный ответ с ожидаемым результатом
+    assert status == 400
+
+
+def test_update_pet_info_without_name(name='', animal_type='Котэ', age=5):
+    """Проверяем возможность обновления информации о питомце, не указывая имя"""
+
+    # Получаем ключ auth_key и список своих питомцев
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+    _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+
+    # Если список не пустой, то пробуем обновить его имя, тип и возраст
+    if len(my_pets['pets']) > 0:
+        status, result = pf.update_pet_info(auth_key, my_pets['pets'][0]['id'], name, animal_type, age)
+
+        # Проверяем что статус ответа = 200 и имя питомца соответствует заданному
+        assert status == 400
+
+
+def test_update_pet_info_with_limit_name(name='МурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзиккисаМурзик',
+                                         animal_type='Котэ', age=5):
+    """Проверяем возможность обновления информации о питомце с именем в 255 символов"""
+
+    # Получаем ключ auth_key и список своих питомцев
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+    _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+
+    # Если список не пустой, то пробуем обновить его имя, тип и возраст
+    if len(my_pets['pets']) > 0:
+        status, result = pf.update_pet_info(auth_key, my_pets['pets'][0]['id'], name, animal_type, age)
+
+        # Проверяем что статус ответа = 200 и имя питомца соответствует заданному
+        assert status == 200
+        assert result['name'] == name
+    else:
+        # если спиок питомцев пустой, то выкидываем исключение с текстом об отсутствии своих питомцев
+        raise Exception("There is no my pets")
+
+
+def test_invalid_method_update_pet_info(name='Мурзик', animal_type='Котэ', age=5):
+    """Проверяем возможность обновления информации о питомце"""
+
+    # Получаем ключ auth_key и список своих питомцев
+    _, auth_key = pf.get_api_key(valid_email, valid_password)
+    _, my_pets = pf.get_list_of_pets(auth_key, "my_pets")
+
+    # Если список не пустой, то пробуем обновить его имя, тип и возраст
+    if len(my_pets['pets']) > 0:
+        status, result = pf.update_pet_info(auth_key, my_pets['pets'][0]['id'], name, animal_type, age)
+
+        # Проверяем что статус ответа = 405
+        assert status == 405
