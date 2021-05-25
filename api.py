@@ -105,7 +105,7 @@ class PetFriends:
             result = res.text
         return status, result
 
-    def create_pet_simple(self, auth_key: json, name: str, animal_type: str, age: str) -> json:
+    def create_pet_simple(self, auth_key: json, name: str, animal_type: str, age: int) -> json:
 
         headers = {'auth_key': auth_key['key']}
         data = {
